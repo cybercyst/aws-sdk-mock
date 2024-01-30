@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
@@ -37,13 +38,25 @@ func main() {
 		panic(err)
 	}
 
-	client := s3.NewFromConfig(cfg)
-	resp, err := client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	s3Client := s3.NewFromConfig(cfg)
+	s3Resp, err := s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		panic(err)
 	}
 
-	for _, bucket := range resp.Buckets {
+	for _, bucket := range s3Resp.Buckets {
 		fmt.Println(*bucket.Name)
+	}
+
+	ec2Client := ec2.NewFromConfig(cfg)
+	ec2Resp, err := ec2Client.DescribeInstances(ctx, &ec2.DescribeInstancesInput{})
+	if err != nil {
+		panic(err)
+	}
+
+	for _, reservation := range ec2Resp.Reservations {
+		for _, instance := range reservation.Instances {
+			fmt.Println(*instance.InstanceId)
+		}
 	}
 }
